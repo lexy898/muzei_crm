@@ -4,6 +4,9 @@ from common import request_utility
 import logging
 import threading
 from models import restaurant
+from models import contact
+import db_helper
+import datetime
 
 logging.basicConfig(format=u'%(levelname)-8s [%(asctime)s] %(message)s', level=logging.ERROR,
                     filename=u'log.txt')
@@ -50,6 +53,9 @@ def get_restaurants_links(page_count):
         restaurants_links.extend(tree.xpath('//li[@class="page-search__item _premium"]//div[@class="search-place-card _premium"]/@data-href'))
         restaurants_links.extend(tree.xpath('//li[@class="page-search__item _premium _platinum"]//div[@class="search-place-card _premium _platinum"]/@data-href'))
         page += 1
+    print("**********************************************")
+    print(len(restaurants_links))
+    print("**********************************************")
     return restaurants_links
 
 
@@ -79,7 +85,9 @@ def get_restaurant_attr(links):
         rest_type = get_list_item(tree.xpath('//div[@class="place-title__type"]/text()'))
         adress = get_list_item(tree.xpath('//div[@class="info"]//div[@class="info__content"]/span/text()'))
         rc_rating = get_list_item(tree.xpath('//div[@class="place"]//div[@class="place-rating__value"]/div/div/text()'))
-        restaurants_list.append(restaurant.Restaurant(name, adress, url, rc_rating, rest_type))
+        rest = restaurant.Restaurant(name, adress, url, rc_rating, rest_type)
+        rest.contacts.extend(get_phones(tree))
+        restaurants_list.append(rest)
 
 
 def chunk_it(seq, num):
@@ -99,7 +107,32 @@ def get_list_item(list):
     except IndexError:
         return '-'
 
-# page_count = get_page_count()
-links = get_restaurants_links(1)
-get_restaurant_attributes(links)
-pass
+
+def get_all_restaurants():
+    # page_count = get_page_count()
+    page_count = 1
+    # links = get_restaurants_links(page_count)
+    links = ['/spb/place/vesennij-2']
+    return get_restaurant_attributes(links)
+
+
+def update_restaurants():
+    rests_list = get_all_restaurants()
+    db_helper.add_restauraunts(rests_list)
+
+
+def get_phones(tree):
+    phones_list = []
+    phones = list(set(tree.xpath('//li[@class="phone-list__item"]/a/@href')))
+    if phones:
+        for phone in phones:
+            phone_description = get_list_item(tree.xpath('//a[@href="' + phone + '"]/span/text()'))
+            phones_list.append(contact.Contact(phone.replace('tel: ', ''), phone_description, 'PHONE', datetime.datetime.now(), None, None))
+    else:
+        phone = get_list_item(tree.xpath('//meta[@itemprop="telephone"]/@content'))
+        phones_list.append(contact.Contact(phone, 'Телефон заведения', 'PHONE', datetime.datetime.now(), None, None))
+    return phones_list
+
+
+if __name__ == "__main__":
+    update_restaurants()
