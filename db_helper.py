@@ -1,17 +1,18 @@
 from sqlalchemy import create_engine
 from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey, Float, DateTime
-from credentials import db_user, db_password, db_host, db_port, db_database
+from credentials import DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_DATABASE
 from models import restaurant
 from models import contact
 from models import contact_type
 from sqlalchemy.orm import mapper
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.sql.expression import func
 
-SQLALCHEMY_DATABASE_URI = 'postgres://{user}:{password}@{host}:{port}/{database}'.format(user=db_user,
-                                                                                         password=db_password,
-                                                                                         host=db_host,
-                                                                                         port=db_port,
-                                                                                         database=db_database)
+SQLALCHEMY_DATABASE_URI = 'postgres://{user}:{password}@{host}:{port}/{database}'.format(user=DB_USER,
+                                                                                         password=DB_PASSWORD,
+                                                                                         host=DB_HOST,
+                                                                                         port=DB_PORT,
+                                                                                         database=DB_DATABASE)
 engine = create_engine(SQLALCHEMY_DATABASE_URI, encoding='UTF8', echo=True)
 Session = sessionmaker(bind=engine)
 session = Session()
@@ -23,7 +24,7 @@ restaurants = Table('restaurants', metadata,
                     Column('name', String),
                     Column('rest_type', String),
                     Column('adress', String),
-                    Column('rc_link', String),
+                    Column('rc_link', String, unique=True),
                     Column('rc_rating', Float)
                     )
 
@@ -44,7 +45,11 @@ contacts = Table('contacts', metadata,
 
 metadata.create_all(engine)
 
-# ***mapping block***
+'''
+***************************
+*******MAPPING BLOCK*******
+***************************
+'''
 mapper(restaurant.Restaurant, restaurants)
 mapper(contact_type.ContactType, contact_types)
 mapper(contact.Contact, contacts)
@@ -62,3 +67,9 @@ def add_restauraunts(rest_list):
 
     session.add_all(contacts_list)
     session.commit()
+
+
+def get_random_restaurant():
+    rows_query = session.query(restaurant.Restaurant).order_by(func.random()).limit(1)
+    result = rows_query.first()
+    return result

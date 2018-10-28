@@ -109,10 +109,8 @@ def get_list_item(list):
 
 
 def get_all_restaurants():
-    # page_count = get_page_count()
-    page_count = 1
-    # links = get_restaurants_links(page_count)
-    links = ['/spb/place/vesennij-2']
+    page_count = get_page_count()
+    links = get_restaurants_links(page_count)
     return get_restaurant_attributes(links)
 
 
