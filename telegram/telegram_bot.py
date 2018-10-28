@@ -14,6 +14,7 @@ bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
 def error_handler(func):
     def wrapper(*args, **kwargs):
+        result = None
         try:
             result = func(*args, **kwargs)
         except AttributeError as err:
@@ -49,7 +50,7 @@ def get_main_menu(message):
 @bot.callback_query_handler(func=lambda call: call.data == 'next-restaurant')
 @error_handler
 def get_random_restaurant(call):
-    message = rests_management.det_random_restaurant()
+    message = rests_management.get_random_restaurant()
     message.edit_message_text(bot, call)
 
 

@@ -40,7 +40,8 @@ contacts = Table('contacts', metadata,
                  Column('cont_type', String, ForeignKey("contact_types.cont_type_id"), nullable=False),
                  Column('added_date', DateTime, nullable=False),
                  Column('update_date', DateTime),
-                 Column('rest_id', Integer, ForeignKey("restaurants.rest_id"), nullable=False)
+                 Column('rest_id', Integer, ForeignKey("restaurants.rest_id"), nullable=False),
+                 Column('source', String)
                  )
 
 metadata.create_all(engine)
@@ -70,6 +71,12 @@ def add_restauraunts(rest_list):
 
 
 def get_random_restaurant():
-    rows_query = session.query(restaurant.Restaurant).order_by(func.random()).limit(1)
-    result = rows_query.first()
+    query = session.query(restaurant.Restaurant).order_by(func.random()).limit(1)
+    result = query.first()
+    return result
+
+
+def get_contacts_by_restaurant_id(restaurant_id):
+    query = session.query(contact.Contact).filter(contact.Contact.rest_id == restaurant_id)
+    result = query.all()
     return result
