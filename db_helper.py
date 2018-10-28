@@ -76,6 +76,11 @@ def get_random_restaurant():
     return result
 
 
+def get_all_restaurants():
+    query = session.query(restaurant.Restaurant)
+    result = query.all()
+    return result
+
 def get_contacts_by_restaurant_id(restaurant_id):
     query = session.query(contact.Contact).filter(contact.Contact.rest_id == restaurant_id)
     result = query.all()
