@@ -1,8 +1,13 @@
 from difflib import SequenceMatcher
 from common import request_utility
+from managers import contact_manager
+import datetime
+from models import contact as m_contact
 import db_helper
 import json
 import io
+
+INDEX_SEQ = 0.4  # Индекс неточного сравнения названия заведений
 
 URL = "https://catalog.api.2gis.ru/3.0/items"
 
@@ -20,6 +25,35 @@ params = {"viewpoint1": "30.299884814697247,59.93814922241865", "viewpoint2": "3
                     "context_rubrics,search_attributes,widgets,filters",
           "stat[sid]": "2549eaf8-29e2-49d9-be64-4f604874b6a6", "stat[user]": "e4e82969-b688-4206-8789-23bb84b417f8",
           "key": "rulikm8232"}
+
+
+def add_contacts_from_contact_groups(contact_groups):
+    for contact_group in contact_groups:
+        contacts = contact_group.get('contacts')
+        for contact in contacts:
+            cont = {}
+            if contact.get('type') == 'website':
+                cont = {'type': 'WEBSITE', 'value': contact.get('url')}
+            elif contact.get('type') == 'email':
+                cont = {'type': 'E-MAIL', 'value': contact.get('value')}
+            elif contact.get('type') == 'phone':
+                cont = {'type': 'PHONE', 'value': contact.get('value')}
+            elif contact.get('type') == 'instagram':
+                cont = {'type': 'IG', 'value': contact.get('value')}
+            elif contact.get('type') == 'vkontakte':
+                cont = {'type': 'VK', 'value': contact.get('value')}
+            elif contact.get('type') == 'facebook':
+                cont = {'type': 'FB', 'value': contact.get('value')}
+            if cont:
+                contact_2gis = m_contact.Contact(cont_value=cont.get('value'),
+                                                 description=None,
+                                                 cont_type=cont.get('type'),
+                                                 added_date=datetime.datetime.now(),
+                                                 update_date=None,
+                                                 rest_id=restaurant.rest_id,
+                                                 source='2GIS')
+                contact_manager.add_contact(contact_2gis)
+
 
 two_gis_types = []
 with io.open('2gis_types.txt', encoding='utf-8') as file:
@@ -45,5 +79,12 @@ for restaurant in restaurants:
                 sm_name = SequenceMatcher(None, restaurant.name.lower(), two_gis_name.lower()).ratio()
                 print(restaurant.name + ' и ' + two_gis_name + ' : index = ' + str(sm_name))
                 print('entry_type: ' + str(entry_type))
+                if sm_name >= INDEX_SEQ and entry_type:
+                    contact_groups = item.get('contact_groups')
+                    add_contacts_from_contact_groups(contact_groups)
         except AttributeError:
             continue
+        except TypeError:
+            continue
+
+

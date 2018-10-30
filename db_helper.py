@@ -81,7 +81,15 @@ def get_all_restaurants():
     result = query.all()
     return result
 
-def get_contacts_by_restaurant_id(restaurant_id):
+
+def get_contacts_by_restaurant_id(restaurant_id, cont_type=None):
     query = session.query(contact.Contact).filter(contact.Contact.rest_id == restaurant_id)
+    if cont_type:
+        query = query.filter(contact.Contact.cont_type == cont_type)
     result = query.all()
     return result
+
+
+def add_contact(cont):
+    session.add(cont)
+    session.commit()

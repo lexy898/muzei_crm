@@ -1,6 +1,7 @@
 import db_helper
 from telebot import types
 from telegram import message as msg
+from common import string_utility
 
 
 def get_random_restaurant():
@@ -13,11 +14,13 @@ def get_random_restaurant():
     contacts = db_helper.get_contacts_by_restaurant_id(restaurant.rest_id)
     for contact in contacts:
         if contact.cont_type == 'PHONE':
-            message.add_message_row('📞' + contact.cont_value + ' ' + contact.description)
+            message.add_message_row('📞' + contact.cont_value + ' ' + string_utility.none_to_str(contact.description))
         elif contact.cont_type == 'E-MAIL':
-            message.add_message_row('✉' + contact.cont_value + ' ' + contact.description)
+            message.add_message_row('✉' + contact.cont_value + ' ' + string_utility.none_to_str(contact.description))
+        elif contact.cont_type == 'WEBSITE':
+            message.add_message_row('🌐' + contact.cont_value + ' ' + string_utility.none_to_str(contact.description))
         else:
-            message.add_message_row(contact.cont_value + ' ' + contact.description)
+            message.add_message_row(contact.cont_value + ' ' + string_utility.none_to_str(contact.description))
     markup = types.InlineKeyboardMarkup()
     row = [types.InlineKeyboardButton("Отправить e-mail", callback_data="send-email"),
            types.InlineKeyboardButton("Следующий>", callback_data="next-restaurant")]
