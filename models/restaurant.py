@@ -8,6 +8,7 @@ class Restaurant(object):
         self.rc_rating = rc_rating  # Рейтинг на Restoclub
         self.contacts = []          # Список контактов
         self.rest_id = rest_id      # Ид Заведения
+        self.rating = None          # Рейтинг
 
     def __repr__(self):
         return "<Restaurant('%s', '%s', '%s', '%s', '%s',)>" % \

@@ -25,12 +25,14 @@ restaurants = Table('restaurants', metadata,
                     Column('rest_type', String),
                     Column('adress', String),
                     Column('rc_link', String, unique=True),
-                    Column('rc_rating', Float)
+                    Column('rc_rating', Float),
+                    Column('rating', Integer)
                     )
 
 contact_types = Table('contact_types', metadata,
                       Column('cont_type_id', String, primary_key=True),
-                      Column('description', String)
+                      Column('description', String),
+                      Column('rating', Integer)
                       )
 
 contacts = Table('contacts', metadata,
@@ -88,6 +90,17 @@ def get_contacts_by_restaurant_id(restaurant_id, cont_type=None):
         query = query.filter(contact.Contact.cont_type == cont_type)
     result = query.all()
     return result
+
+
+def get_contact_types_raitings():
+    query = session.query(contact_type.ContactType)
+    result = query.all()
+    return {item.cont_type_id: item.rating for item in result}
+
+
+def update_rest_rating(restaurant_id, rating):
+    session.query(restaurant.Restaurant).filter(restaurant.Restaurant.rest_id == restaurant_id).update({'rating': rating}, synchronize_session=False)
+    session.commit()
 
 
 def add_contact(cont):
